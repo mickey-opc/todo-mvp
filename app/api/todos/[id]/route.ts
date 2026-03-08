@@ -96,12 +96,15 @@ export async function PATCH(req: Request, { params }: Params) {
     const updatedDueDate = nextDueDate === undefined ? existing.due_date : nextDueDate;
     const updatedCategory = nextCategory ?? existing.category ?? 'other';
 
+    // Convert Date to ISO string for SQL
+    const dueDateValue = updatedDueDate instanceof Date ? updatedDueDate.toISOString() : updatedDueDate;
+
     const result = await sql<TodoRow>`
       UPDATE todos
       SET title = ${updatedTitle},
           description = ${updatedDescription},
           completed = ${updatedCompleted},
-          due_date = ${updatedDueDate},
+          due_date = ${dueDateValue},
           category = ${updatedCategory},
           updated_at = NOW()
       WHERE id = ${id} AND user_id = ${userId}
