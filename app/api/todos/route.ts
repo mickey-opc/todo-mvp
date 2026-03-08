@@ -64,9 +64,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid category' }, { status: 400 });
     }
 
+    // Convert Date to ISO string for SQL
+    const dueDateValue = dueDate instanceof Date ? dueDate.toISOString() : dueDate;
+
     const result = await sql<TodoRow>`
       INSERT INTO todos (user_id, title, description, due_date, category)
-      VALUES (${userId}, ${title}, ${description}, ${dueDate}, ${category})
+      VALUES (${userId}, ${title}, ${description}, ${dueDateValue}, ${category})
       RETURNING id, user_id, title, description, due_date, category, completed, created_at, updated_at
     `;
 
