@@ -1,9 +1,11 @@
 import bcrypt from 'bcryptjs';
 import { NextResponse } from 'next/server';
-import { sql, type UserRow } from '@/lib/db';
+import { ensureSchema, sql, type UserRow } from '@/lib/db';
 
 export async function POST(req: Request) {
   try {
+    await ensureSchema();
+
     const body = await req.json();
     const email = String(body.email || '').trim().toLowerCase();
     const password = String(body.password || '');
@@ -48,6 +50,13 @@ export async function POST(req: Request) {
     );
   } catch (error) {
     console.error('Register error:', error);
+    const code = (error as { code?: string }).code;
+    if (code === 'missing_connection_string') {
+      return NextResponse.json(
+        { error: 'Database connection string is missing (POSTGRES_URL)' },
+        { status: 500 }
+      );
+    }
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

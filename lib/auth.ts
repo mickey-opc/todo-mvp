@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 import type { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { sql, type UserRow } from '@/lib/db';
+import { ensureSchema, sql, type UserRow } from '@/lib/db';
 
 export const authOptions: NextAuthOptions = {
   session: {
@@ -15,6 +15,8 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' }
       },
       async authorize(credentials) {
+        await ensureSchema();
+
         const email = credentials?.email?.trim().toLowerCase();
         const password = credentials?.password;
 
