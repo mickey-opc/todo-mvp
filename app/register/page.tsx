@@ -49,15 +49,18 @@ export default function RegisterPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-md items-center justify-center p-6">
-      <form onSubmit={handleSubmit} className="w-full space-y-4 rounded bg-white p-6 shadow">
-        <h1 className="text-2xl font-bold">Register</h1>
+    <main className="page-wrap mx-auto flex min-h-screen max-w-md items-center justify-center p-6">
+      <form onSubmit={handleSubmit} className="glass-card card-hover w-full space-y-4 p-7 sm:p-8">
+        <div>
+          <p className="text-xs uppercase tracking-[0.24em] text-cyan-200/90">Create Account</p>
+          <h1 className="mt-2 text-3xl font-semibold text-white">Register</h1>
+        </div>
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Name (optional)"
-          className="w-full rounded border border-slate-300 px-3 py-2"
+          className="soft-input"
         />
         <input
           type="email"
@@ -65,7 +68,7 @@ export default function RegisterPage() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="Email"
-          className="w-full rounded border border-slate-300 px-3 py-2"
+          className="soft-input"
         />
         <input
           type="password"
@@ -73,18 +76,16 @@ export default function RegisterPage() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Password (min 6 chars)"
-          className="w-full rounded border border-slate-300 px-3 py-2"
+          className="soft-input"
         />
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        <button
-          disabled={loading}
-          className="w-full rounded bg-slate-900 px-4 py-2 text-white disabled:opacity-60"
-        >
+        {error && <p className="rounded-xl bg-rose-500/15 px-3 py-2 text-sm text-rose-200">{error}</p>}
+        <button disabled={loading} className="gradient-btn flex w-full items-center justify-center gap-2 disabled:opacity-70">
+          {loading && <span className="loading-orb" />}
           {loading ? 'Creating account...' : 'Register'}
         </button>
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-slate-200/90">
           Already have an account?{' '}
-          <Link href="/login" className="text-blue-600 underline">
+          <Link href="/login" className="font-medium text-cyan-200 transition hover:text-cyan-100">
             Login
           </Link>
         </p>

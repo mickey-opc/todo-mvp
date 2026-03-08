@@ -8,17 +8,22 @@ export default async function HomePage() {
 
   if (!session?.user) {
     return (
-      <main className="mx-auto flex min-h-screen max-w-xl flex-col items-center justify-center gap-4 p-6 text-center">
-        <h1 className="text-3xl font-bold">Todo MVP</h1>
-        <p className="text-slate-600">Please login or register to manage your todos.</p>
-        <div className="flex gap-3">
-          <Link href="/login" className="rounded bg-blue-600 px-4 py-2 text-white">
-            Login
-          </Link>
-          <Link href="/register" className="rounded bg-slate-900 px-4 py-2 text-white">
-            Register
-          </Link>
-        </div>
+      <main className="page-wrap mx-auto flex min-h-screen max-w-2xl items-center justify-center p-6">
+        <section className="glass-card card-hover w-full p-8 text-center sm:p-10">
+          <p className="mb-2 text-xs uppercase tracking-[0.3em] text-cyan-200/90">Todo Workspace</p>
+          <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">Todo MVP</h1>
+          <p className="mx-auto mt-4 max-w-md text-sm text-slate-200/85 sm:text-base">
+            登录后管理你的任务，体验更轻盈、现代的待办流程。
+          </p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
+            <Link href="/login" className="gradient-btn text-center">
+              Login
+            </Link>
+            <Link href="/register" className="ghost-btn text-center">
+              Register
+            </Link>
+          </div>
+        </section>
       </main>
     );
   }
