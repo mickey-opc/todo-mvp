@@ -6,12 +6,13 @@ import { useTheme } from 'next-themes';
 import Link from 'next/link';
 import { 
   Button, Input, Select, Tag, Card, List, 
-  Badge, Spin, Alert, message, Tooltip, Typography 
+  Badge, Spin, Alert, message, Tooltip, Typography, DatePicker 
 } from 'antd';
 import { 
   PlusOutlined, DeleteOutlined, 
   CheckOutlined, StopOutlined, ClockCircleOutlined 
 } from '@ant-design/icons';
+import dayjs, { Dayjs } from 'dayjs';
 
 const { TextArea } = Input;
 const { Text, Title } = Typography;
@@ -111,17 +112,17 @@ function triggerNotification() {
   vibrateDevice();
 }
 
-function toDateInputValue(iso: string | null) {
-  if (!iso) return '';
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return '';
-  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
-  return local.toISOString().slice(0, 16);
+// Convert ISO date string to dayjs object for DatePicker
+function toDayjsDate(iso: string | null): Dayjs | null {
+  if (!iso) return null;
+  const date = dayjs(iso);
+  return date.isValid() ? date : null;
 }
 
-function toIsoDateTime(input: string) {
-  if (!input) return null;
-  return new Date(input).toISOString();
+// Convert dayjs object to ISO string for API
+function toIsoDateTime(dayjsDate: Dayjs | null): string | null {
+  if (!dayjsDate || !dayjsDate.isValid()) return null;
+  return dayjsDate.toISOString();
 }
 
 function getCategoryMeta(category: string | null) {
@@ -153,12 +154,12 @@ export function TodoApp({ userEmail }: Props) {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [dueDate, setDueDate] = useState('');
+  const [dueDate, setDueDate] = useState<Dayjs | null>(null);
   const [category, setCategory] = useState<(typeof CATEGORY_OPTIONS)[number]['value']>('other');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [editDescription, setEditDescription] = useState('');
-  const [editDueDate, setEditDueDate] = useState('');
+  const [editDueDate, setEditDueDate] = useState<Dayjs | null>(null);
   const [editCategory, setEditCategory] =
     useState<(typeof CATEGORY_OPTIONS)[number]['value']>('other');
   const [loading, setLoading] = useState(true);
@@ -218,7 +219,7 @@ export function TodoApp({ userEmail }: Props) {
 
     setTitle('');
     setDescription('');
-    setDueDate('');
+    setDueDate(null);
     setCategory('other');
     await loadTodos();
     message.success('Todo created successfully');
@@ -244,7 +245,7 @@ export function TodoApp({ userEmail }: Props) {
     setEditingId(todo.id);
     setEditTitle(todo.title);
     setEditDescription(todo.description ?? '');
-    setEditDueDate(toDateInputValue(todo.due_date));
+    setEditDueDate(toDayjsDate(todo.due_date));
     setEditCategory((todo.category as (typeof CATEGORY_OPTIONS)[number]['value']) || 'other');
   }
 
@@ -252,7 +253,7 @@ export function TodoApp({ userEmail }: Props) {
     setEditingId(null);
     setEditTitle('');
     setEditDescription('');
-    setEditDueDate('');
+    setEditDueDate(null);
     setEditCategory('other');
   }
 
@@ -423,11 +424,14 @@ export function TodoApp({ userEmail }: Props) {
               rows={3}
             />
             <div className="grid gap-3 sm:grid-cols-2">
-              <Input
-                type="datetime-local"
+              <DatePicker
+                showTime={{ format: 'HH:mm' }}
+                format="YYYY-MM-DD HH:mm"
                 value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
+                onChange={(date) => setDueDate(date)}
                 size="large"
+                style={{ width: '100%' }}
+                placeholder="选择日期和时间"
               />
               <Select
                 value={category}
@@ -492,10 +496,13 @@ export function TodoApp({ userEmail }: Props) {
                       rows={3}
                     />
                     <div className="grid gap-3 sm:grid-cols-2">
-                      <Input
-                        type="datetime-local"
+                      <DatePicker
+                        showTime={{ format: 'HH:mm' }}
+                        format="YYYY-MM-DD HH:mm"
                         value={editDueDate}
-                        onChange={(e) => setEditDueDate(e.target.value)}
+                        onChange={(date) => setEditDueDate(date)}
+                        style={{ width: '100%' }}
+                        placeholder="选择日期和时间"
                       />
                       <Select
                         value={editCategory}
