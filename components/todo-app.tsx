@@ -4,6 +4,17 @@ import { FormEvent, useEffect, useState } from 'react';
 import { signOut } from 'next-auth/react';
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
+import { 
+  Button, Input, Select, Tag, Card, List, 
+  Badge, Spin, Alert, message, Tooltip, Typography 
+} from 'antd';
+import { 
+  PlusOutlined, DeleteOutlined, 
+  CheckOutlined, StopOutlined, ClockCircleOutlined 
+} from '@ant-design/icons';
+
+const { TextArea } = Input;
+const { Text, Title } = Typography;
 
 type Todo = {
   id: string;
@@ -17,18 +28,10 @@ type Todo = {
 };
 
 const CATEGORY_OPTIONS = [
-  { value: 'work', label: '工作', badgeClass: 'bg-blue-400/20 text-blue-100 ring-1 ring-blue-300/40' },
-  {
-    value: 'life',
-    label: '生活',
-    badgeClass: 'bg-emerald-400/20 text-emerald-100 ring-1 ring-emerald-300/40'
-  },
-  {
-    value: 'study',
-    label: '学习',
-    badgeClass: 'bg-indigo-400/20 text-indigo-100 ring-1 ring-indigo-300/40'
-  },
-  { value: 'other', label: '其他', badgeClass: 'bg-slate-300/20 text-slate-100 ring-1 ring-white/30' }
+  { value: 'work', label: '工作', color: 'blue' },
+  { value: 'life', label: '生活', color: 'green' },
+  { value: 'study', label: '学习', color: 'purple' },
+  { value: 'other', label: '其他', color: 'default' }
 ] as const;
 
 const POMODORO_TIME = 25 * 60; // 25 minutes in seconds
@@ -125,13 +128,13 @@ function getCategoryMeta(category: string | null) {
   return CATEGORY_OPTIONS.find((item) => item.value === category) ?? CATEGORY_OPTIONS[3];
 }
 
-function getDueDateTone(dueDate: string | null) {
-  if (!dueDate) return 'text-slate-300 dark:text-slate-300';
+function getDueDateStatus(dueDate: string | null): 'overdue' | 'soon' | 'normal' | null {
+  if (!dueDate) return null;
   const due = new Date(dueDate).getTime();
   const now = Date.now();
-  if (due < now) return 'text-rose-500 dark:text-rose-200';
-  if (due - now <= 1000 * 60 * 60 * 48) return 'text-amber-500 dark:text-amber-200';
-  return 'text-cyan-500 dark:text-cyan-100';
+  if (due < now) return 'overdue';
+  if (due - now <= 1000 * 60 * 60 * 48) return 'soon';
+  return 'normal';
 }
 
 type PomodoroState = {
@@ -208,6 +211,7 @@ export function TodoApp({ userEmail }: Props) {
     });
 
     if (!res.ok) {
+      message.error('Failed to create todo');
       setError('Failed to create todo');
       return;
     }
@@ -217,6 +221,7 @@ export function TodoApp({ userEmail }: Props) {
     setDueDate('');
     setCategory('other');
     await loadTodos();
+    message.success('Todo created successfully');
   }
 
   async function toggleCompleted(todo: Todo) {
@@ -227,6 +232,7 @@ export function TodoApp({ userEmail }: Props) {
     });
 
     if (!res.ok) {
+      message.error('Failed to update todo');
       setError('Failed to update todo');
       return;
     }
@@ -265,12 +271,14 @@ export function TodoApp({ userEmail }: Props) {
     });
 
     if (!res.ok) {
+      message.error('Failed to save todo');
       setError('Failed to save todo');
       return;
     }
 
     cancelEdit();
     await loadTodos();
+    message.success('Todo updated successfully');
   }
 
   async function deleteTodo(id: string) {
@@ -287,11 +295,13 @@ export function TodoApp({ userEmail }: Props) {
     });
 
     if (!res.ok) {
+      message.error('Failed to delete todo');
       setError('Failed to delete todo');
       return;
     }
 
     await loadTodos();
+    message.success('Todo deleted');
   }
 
   function startPomodoro(todo: Todo) {
@@ -362,244 +372,246 @@ export function TodoApp({ userEmail }: Props) {
 
   return (
     <main className="page-wrap mx-auto min-h-screen w-full max-w-4xl px-4 py-6 sm:px-6 sm:py-8">
-      <div className="glass-card card-hover mb-6 p-5 sm:p-6">
+      <Card className="mb-6" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-xs uppercase tracking-[0.28em] text-cyan-200/90 dark:text-cyan-200/90">Workspace</p>
-            <h1 className="text-2xl font-semibold tracking-tight text-white dark:text-white">Todo App V1.2</h1>
-            <p className="text-sm text-slate-200/80 dark:text-slate-200/80">{userEmail}</p>
+            <Text type="secondary" style={{ textTransform: 'uppercase', letterSpacing: '0.28em', fontSize: 12 }}>Workspace</Text>
+            <Title level={3} style={{ margin: 0, color: 'white' }}>Todo App V1.2</Title>
+            <Text type="secondary">{userEmail}</Text>
           </div>
           <div className="flex gap-2">
-            <Link
-              href="/pomodoro-stats"
-              className="ghost-btn px-3.5 py-2 text-sm"
-            >
-              📊
-            </Link>
-            <Link
-              href="/settings"
-              className="ghost-btn px-3.5 py-2 text-sm"
-            >
-              ⚙️
-            </Link>
-            <button
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="ghost-btn px-3.5 py-2 text-sm"
-            >
-              {theme === 'dark' ? '☀️' : '🌙'}
-            </button>
-            <button
-              onClick={() => signOut({ callbackUrl: '/login' })}
-              className="ghost-btn px-3.5 py-2 text-sm"
-            >
+            <Tooltip title="Statistics">
+              <Link href="/pomodoro-stats">
+                <Button type="text" style={{ color: 'white' }}>📊</Button>
+              </Link>
+            </Tooltip>
+            <Tooltip title="Settings">
+              <Link href="/settings">
+                <Button type="text" style={{ color: 'white' }}>⚙️</Button>
+              </Link>
+            </Tooltip>
+            <Tooltip title="Toggle Theme">
+              <Button 
+                type="text" 
+                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                style={{ color: 'white' }}
+              >
+                {theme === 'dark' ? '☀️' : '🌙'}
+              </Button>
+            </Tooltip>
+            <Button type="text" onClick={() => signOut({ callbackUrl: '/login' })} style={{ color: 'white' }}>
               Logout
-            </button>
+            </Button>
           </div>
         </div>
-      </div>
+      </Card>
 
-      <form onSubmit={handleCreate} className="glass-card card-hover mb-6 p-4 sm:p-6">
-        <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-cyan-200/90 dark:text-cyan-200/90">新建待办</p>
-        <div className="grid gap-3">
-          <input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="待办标题"
-            className="soft-input"
-          />
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="描述（可选）"
-            className="soft-input"
-            rows={3}
-          />
-          <div className="grid gap-3 sm:grid-cols-2">
-            <input
-              type="datetime-local"
-              value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
-              className="soft-input"
+      <Card className="mb-6" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+        <Text type="secondary" style={{ textTransform: 'uppercase', letterSpacing: '0.2em', fontSize: 12, display: 'block', marginBottom: 16 }}>新建待办</Text>
+        <form onSubmit={handleCreate}>
+          <div className="grid gap-3">
+            <Input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="待办标题"
+              size="large"
             />
-            <select
-              value={category}
-              onChange={(e) =>
-                setCategory(e.target.value as (typeof CATEGORY_OPTIONS)[number]['value'])
-              }
-              className="soft-input"
-            >
-              {CATEGORY_OPTIONS.map((item) => (
-                <option key={item.value} value={item.value} className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">
-                  {item.label}
-                </option>
-              ))}
-            </select>
+            <TextArea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="描述（可选）"
+              rows={3}
+            />
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Input
+                type="datetime-local"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                size="large"
+              />
+              <Select
+                value={category}
+                onChange={(value) => setCategory(value)}
+                size="large"
+                options={CATEGORY_OPTIONS.map(item => ({
+                  value: item.value,
+                  label: item.label
+                }))}
+              />
+            </div>
+            <Button type="primary" htmlType="submit" size="large" icon={<PlusOutlined />}>
+              创建
+            </Button>
           </div>
-          <button className="gradient-btn w-full sm:w-auto">创建</button>
-        </div>
-      </form>
+        </form>
+      </Card>
 
       {error && (
-        <p className="mb-3 rounded-xl bg-rose-500/15 px-3 py-2 text-sm text-rose-200 ring-1 ring-rose-300/30 dark:text-rose-200">
-          {error}
-        </p>
+        <Alert message={error} type="error" showIcon className="mb-3" />
       )}
 
       {loading ? (
-        <div className="glass-card flex items-center gap-3 rounded-2xl p-4 text-slate-200/90 dark:text-slate-200/90">
-          <span className="loading-orb" />
-          <span>Loading...</span>
-        </div>
+        <Card style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', textAlign: 'center' }}>
+          <Spin tip="Loading..." />
+        </Card>
       ) : todos.length === 0 ? (
-        <p className="glass-card rounded-2xl p-4 text-slate-200/90 dark:text-slate-200/90">No todos yet.</p>
+        <Card style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+          <Text type="secondary">No todos yet.</Text>
+        </Card>
       ) : (
-        <ul className="space-y-3">
-          {todos.map((todo) => {
+        <List
+          dataSource={todos}
+          renderItem={(todo) => {
             const categoryMeta = getCategoryMeta(todo.category);
-            const dueTone = getDueDateTone(todo.due_date);
+            const dueDateStatus = getDueDateStatus(todo.due_date);
             const isEditing = editingId === todo.id;
             const pomodoroState = pomodoro[todo.id];
             const isPomodoroRunning = pomodoroState?.isRunning;
 
             return (
-              <li
+              <Card 
                 key={todo.id}
+                className="mb-3 cursor-pointer"
+                style={{ 
+                  background: 'rgba(255,255,255,0.05)', 
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  opacity: todo.completed ? 0.6 : 1
+                }}
                 onClick={() => !isEditing && beginEdit(todo)}
-                className="glass-card card-hover cursor-pointer p-4 sm:p-5"
               >
                 {isEditing ? (
                   <div className="space-y-3">
-                    <input
+                    <Input
                       value={editTitle}
                       onChange={(e) => setEditTitle(e.target.value)}
-                      className="soft-input"
+                      size="large"
                     />
-                    <textarea
+                    <TextArea
                       value={editDescription}
                       onChange={(e) => setEditDescription(e.target.value)}
-                      className="soft-input"
                       rows={3}
                     />
                     <div className="grid gap-3 sm:grid-cols-2">
-                      <input
+                      <Input
                         type="datetime-local"
                         value={editDueDate}
                         onChange={(e) => setEditDueDate(e.target.value)}
-                        className="soft-input"
                       />
-                      <select
+                      <Select
                         value={editCategory}
-                        onChange={(e) =>
-                          setEditCategory(e.target.value as (typeof CATEGORY_OPTIONS)[number]['value'])
-                        }
-                        className="soft-input"
-                      >
-                        {CATEGORY_OPTIONS.map((item) => (
-                          <option key={item.value} value={item.value} className="bg-slate-900 text-white dark:bg-slate-900 dark:text-white">
-                            {item.label}
-                          </option>
-                        ))}
-                      </select>
+                        onChange={(value) => setEditCategory(value)}
+                        options={CATEGORY_OPTIONS.map(item => ({
+                          value: item.value,
+                          label: item.label
+                        }))}
+                      />
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      <button
+                      <Button 
+                        type="primary" 
                         onClick={(e) => {
                           e.stopPropagation();
                           void saveEdit(todo);
                         }}
-                        className="gradient-btn px-3 py-2 text-sm"
+                        icon={<CheckOutlined />}
                       >
                         保存
-                      </button>
-                      <button
+                      </Button>
+                      <Button 
                         onClick={(e) => {
                           e.stopPropagation();
                           cancelEdit();
                         }}
-                        className="ghost-btn px-3 py-2 text-sm"
                       >
                         取消
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 ) : (
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div className="min-w-0">
                       <div className="mb-2 flex flex-wrap items-center gap-2">
-                        <span
-                          className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${categoryMeta.badgeClass}`}
-                        >
-                          {categoryMeta.label}
-                        </span>
+                        <Tag color={categoryMeta.color}>{categoryMeta.label}</Tag>
                         {todo.due_date && (
-                          <span className={`text-xs font-medium ${dueTone}`}>
+                          <Tag color={
+                            dueDateStatus === 'overdue' ? 'red' : 
+                            dueDateStatus === 'soon' ? 'orange' : 'cyan'
+                          }>
                             截止：{new Date(todo.due_date).toLocaleString()}
-                          </span>
+                          </Tag>
                         )}
                         {isPomodoroRunning && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/30 px-2.5 py-1 text-xs font-medium text-rose-300 animate-pulse">
-                            🍅 {formatTime(pomodoroState.remaining)}
-                          </span>
+                          <Badge status="processing" text={<span style={{ color: '#f87171' }}>🍅 {formatTime(pomodoroState.remaining)}</span>} />
                         )}
                       </div>
-                      <p
-                        className={`font-medium ${todo.completed ? 'line-through text-slate-300/60 dark:text-slate-300/60' : 'text-white dark:text-white'}`}
+                      <Text 
+                        style={{ 
+                          fontSize: 16, 
+                          textDecoration: todo.completed ? 'line-through' : 'none',
+                          color: todo.completed ? 'rgba(255,255,255,0.45)' : 'white'
+                        }}
                       >
                         {todo.title}
-                      </p>
+                      </Text>
                       {todo.description && (
-                        <p className="mt-1 text-sm text-slate-200/85 dark:text-slate-200/85">{todo.description}</p>
+                        <div style={{ marginTop: 8 }}>
+                          <Text type="secondary">{todo.description}</Text>
+                        </div>
                       )}
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {!todo.completed && (
                         isPomodoroRunning ? (
-                          <button
+                          <Button 
+                            danger
                             onClick={(e) => {
                               e.stopPropagation();
                               stopPomodoro(todo.id);
                             }}
-                            className="pomodoro-btn active"
+                            icon={<StopOutlined />}
                           >
-                            ⏹️ 停止
-                          </button>
+                            停止
+                          </Button>
                         ) : (
-                          <button
+                          <Button 
+                            type="primary"
+                            ghost
                             onClick={(e) => {
                               e.stopPropagation();
                               startPomodoro(todo);
                             }}
-                            className="pomodoro-btn"
+                            icon={<ClockCircleOutlined />}
                           >
-                            🍅 专注
-                          </button>
+                            专注
+                          </Button>
                         )
                       )}
-                      <button
+                      <Button 
+                        type="primary"
                         onClick={(e) => {
                           e.stopPropagation();
                           void toggleCompleted(todo);
                         }}
-                        className="gradient-btn px-3 py-1.5 text-sm"
                       >
                         {todo.completed ? 'Undo' : 'Done'}
-                      </button>
-                      <button
+                      </Button>
+                      <Button 
+                        danger
                         onClick={(e) => {
                           e.stopPropagation();
                           void deleteTodo(todo.id);
                         }}
-                        className="rounded-xl border border-rose-300/40 bg-rose-400/15 px-3 py-1.5 text-sm text-rose-100 transition hover:-translate-y-0.5 hover:bg-rose-400/25 dark:text-rose-100"
+                        icon={<DeleteOutlined />}
                       >
                         Delete
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 )}
-              </li>
+              </Card>
             );
-          })}
-        </ul>
+          }}
+        />
       )}
     </main>
   );

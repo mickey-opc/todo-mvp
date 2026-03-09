@@ -3,6 +3,10 @@
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { Card, Button, Typography, Radio, Space, Spin } from 'antd';
+import { CheckOutlined } from '@ant-design/icons';
+
+const { Title, Text } = Typography;
 
 const themes = [
   {
@@ -42,7 +46,7 @@ export default function SettingsPage() {
   if (!mounted) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="loading-orb" />
+        <Spin size="large" />
       </div>
     );
   }
@@ -52,44 +56,60 @@ export default function SettingsPage() {
       <div className="max-w-md mx-auto">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
-          <Link href="/" className="ghost-btn">
-            ← 返回
+          <Link href="/">
+            <Button>← 返回</Button>
           </Link>
-          <h1 className="text-2xl font-bold">设置</h1>
+          <Title level={3} style={{ margin: 0 }}>设置</Title>
         </div>
 
         {/* Theme Section */}
-        <div className="glass-card p-6">
-          <h2 className="text-lg font-semibold mb-4">主题选择</h2>
-          <p className="text-sm opacity-70 mb-6">选择你喜欢的主题风格</p>
+        <Card 
+          title={<Title level={5} style={{ margin: 0 }}>主题选择</Title>}
+          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+        >
+          <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>选择你喜欢的主题风格</Text>
 
-          <div className="space-y-3">
-            {themes.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => setTheme(t.id)}
-                className={`w-full p-4 rounded-xl border-2 transition-all flex items-center gap-4 ${
-                  theme === t.id
-                    ? 'border-cyan-400 bg-cyan-400/20 scale-[1.02]'
-                    : 'border-white/20 bg-white/5 hover:border-white/40'
-                }`}
-              >
-                <span className="text-3xl">{t.icon}</span>
-                <div className="text-left">
-                  <div className="font-medium">{t.name}</div>
-                  <div className="text-sm opacity-70">{t.description}</div>
-                </div>
-                {theme === t.id && (
-                  <span className="ml-auto text-cyan-400">✓</span>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
+          <Radio.Group 
+            value={theme} 
+            onChange={(e) => setTheme(e.target.value)}
+            style={{ width: '100%' }}
+          >
+            <Space direction="vertical" style={{ width: '100%' }}>
+              {themes.map((t) => (
+                <Radio 
+                  key={t.id} 
+                  value={t.id}
+                  style={{ 
+                    width: '100%',
+                    margin: 0,
+                    padding: '12px 16px',
+                    border: theme === t.id ? '2px solid #22d3ee' : '2px solid rgba(255,255,255,0.2)',
+                    borderRadius: 8,
+                    background: theme === t.id ? 'rgba(34,211,238,0.1)' : 'rgba(255,255,255,0.05)',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">{t.icon}</span>
+                    <div className="text-left">
+                      <div className="font-medium" style={{ color: 'white' }}>{t.name}</div>
+                      <div className="text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>{t.description}</div>
+                    </div>
+                    {theme === t.id && (
+                      <CheckOutlined style={{ marginLeft: 'auto', color: '#22d3ee' }} />
+                    )}
+                  </div>
+                </Radio>
+              ))}
+            </Space>
+          </Radio.Group>
+        </Card>
 
         {/* Current Theme Info */}
-        <div className="mt-6 text-center text-sm opacity-60">
-          当前主题：<span className="font-medium">{themes.find(t => t.id === theme)?.name}</span>
+        <div className="mt-6 text-center">
+          <Text type="secondary">
+            当前主题：<span className="font-medium">{themes.find(t => t.id === theme)?.name}</span>
+          </Text>
         </div>
       </div>
     </div>

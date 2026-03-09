@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { Card, Typography, Button, Statistic } from 'antd';
+
+const { Title, Text } = Typography;
 
 type PomodoroStats = {
   totalSessions: number;
@@ -48,63 +51,66 @@ export default function PomodoroStatsPage() {
 
   return (
     <main className="page-wrap mx-auto min-h-screen w-full max-w-4xl px-4 py-6 sm:px-6 sm:py-8">
-      <div className="glass-card card-hover mb-6 p-5 sm:p-6">
+      <Card 
+        className="mb-6"
+        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+      >
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-xs uppercase tracking-[0.28em] text-cyan-200/90 dark:text-cyan-200/90">Statistics</p>
-            <h1 className="text-2xl font-semibold tracking-tight text-white dark:text-white">
+            <Text type="secondary" style={{ textTransform: 'uppercase', letterSpacing: '0.28em', fontSize: 12 }}>Statistics</Text>
+            <Title level={3} style={{ margin: 0, color: 'white' }}>
               🍅 番茄钟统计
-            </h1>
+            </Title>
           </div>
-          <Link
-            href="/"
-            className="ghost-btn px-3.5 py-2 text-sm"
-          >
-            ← 返回
+          <Link href="/">
+            <Button>← 返回</Button>
           </Link>
         </div>
-      </div>
+      </Card>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="glass-card card-hover p-6">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-rose-500/20 text-2xl">
-              🍅
-            </div>
-            <div>
-              <p className="text-sm text-slate-200/80 dark:text-slate-200/80">总使用次数</p>
-              <p className="text-3xl font-bold text-white dark:text-white">
-                {mounted ? stats.totalSessions : '-'}
-              </p>
-            </div>
-          </div>
-        </div>
+        <Card 
+          style={{ 
+            background: 'rgba(255,255,255,0.05)', 
+            border: '1px solid rgba(255,255,255,0.1)' 
+          }}
+        >
+          <Statistic 
+            title={<Text type="secondary">总使用次数</Text>}
+            value={mounted ? stats.totalSessions : '-'}
+            prefix="🍅"
+            valueStyle={{ color: 'white', fontSize: 36 }}
+          />
+        </Card>
 
-        <div className="glass-card card-hover p-6">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500/20 text-2xl">
-              ⏱️
-            </div>
-            <div>
-              <p className="text-sm text-slate-200/80 dark:text-slate-200/80">累计时长</p>
-              <p className="text-3xl font-bold text-white dark:text-white">
-                {mounted ? formatDuration(stats.totalMinutes) : '-'}
-              </p>
-            </div>
-          </div>
-        </div>
+        <Card 
+          style={{ 
+            background: 'rgba(255,255,255,0.05)', 
+            border: '1px solid rgba(255,255,255,0.1)' 
+          }}
+        >
+          <Statistic 
+            title={<Text type="secondary">累计时长</Text>}
+            value={mounted ? formatDuration(stats.totalMinutes) : '-'}
+            prefix="⏱️"
+            valueStyle={{ color: 'white', fontSize: 36 }}
+          />
+        </Card>
       </div>
 
-      <div className="mt-6 glass-card card-hover p-6">
-        <h2 className="mb-4 text-lg font-semibold text-white dark:text-white">使用说明</h2>
-        <ul className="space-y-2 text-sm text-slate-200/80 dark:text-slate-200/80">
+      <Card 
+        className="mt-6"
+        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+      >
+        <Title level={5} style={{ color: 'white', marginBottom: 16 }}>使用说明</Title>
+        <ul className="space-y-2" style={{ color: 'rgba(255,255,255,0.7)' }}>
           <li>• 点击任务卡片上的 🍅 专注 按钮开始番茄钟</li>
           <li>• 番茄钟时长为 25 分钟</li>
           <li>• 计时结束后会自动标记任务完成</li>
           <li>• 计时结束时会有声音和震动提醒</li>
           <li>• 可随时点击停止按钮中断番茄钟</li>
         </ul>
-      </div>
+      </Card>
     </main>
   );
 }
